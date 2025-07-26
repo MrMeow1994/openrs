@@ -24,6 +24,7 @@ package net.openrs.cache.type;
 import net.openrs.cache.Cache;
 import net.openrs.cache.type.areas.AreaType;
 import net.openrs.cache.type.areas.AreaTypeList;
+import net.openrs.cache.type.dbrow.dblowTypeList;
 import net.openrs.cache.type.enums.EnumType;
 import net.openrs.cache.type.enums.EnumTypeList;
 import net.openrs.cache.type.hitbars.HitBarType;
@@ -89,6 +90,8 @@ public class TypeListManager {
 	private static final HitMarkTypeList hitmark = new HitMarkTypeList();
 	private static final HitBarTypeList hitbar = new HitBarTypeList();
 	private static final TextureTypeList texture = new TextureTypeList();
+	public static final dblowTypeList dbrow = new dblowTypeList();
+
 	
 	public static void initialize(Cache cache) {
 		enm.initialize(cache);
@@ -111,6 +114,7 @@ public class TypeListManager {
 		hitmark.initialize(cache);
 		hitbar.initialize(cache);
 		texture.initialize(cache);
+		//dbrow.initialize(cache);
 	}
 	
 	public static final int enumSize() {
@@ -286,6 +290,7 @@ public class TypeListManager {
 		hitmark.print();
 		hitbar.print();
 		texture.print();
+		//dbrow.print();
 	}
 
 }

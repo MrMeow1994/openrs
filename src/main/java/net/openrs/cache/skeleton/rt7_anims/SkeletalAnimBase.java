@@ -21,10 +21,10 @@ public class SkeletalAnimBase extends AnimKeyFrameSet {
 
    // Encode method to write data
    public void encode(DataOutputStream dos) throws IOException {
+      for (AnimationBone bone : bones) {
+         bone.encode(dos, false);  // Encode each bone
+      }
       dos.writeByte(max_connections);  // Write number of bones
 
-      for (AnimationBone bone : bones) {
-         bone.encode(dos);  // Encode each bone
-      }
    }
 }

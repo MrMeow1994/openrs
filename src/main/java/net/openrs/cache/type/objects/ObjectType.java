@@ -1,5 +1,5 @@
 /**
-* Copyright (c) Kyle Fricilone
+ * Copyright (c) Kyle Fricilone
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -7,10 +7,10 @@
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in all
  * copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -88,6 +88,11 @@ public class ObjectType implements Type {
 	public Map<Integer, Object> params = null;
 	public int category = -1;
 	private boolean field2118 = false;
+	public int opcode91;
+	public int opcode92;
+	public int opcode92_2;
+	public int field2362 = 300;
+	public int field2363 = 300;
 	private int field2130 = 0;
 	private short[] colorplateToFind;
 	private short[] colorplateToReplace;
@@ -98,9 +103,9 @@ public class ObjectType implements Type {
 
 	@Override
 	public void decode(ByteBuffer buffe) {
-        decode(buffe, true);
-    }
-					   public void decode(ByteBuffer buffer, boolean pre220) {
+		decode(buffe, true);
+	}
+	public void decode(ByteBuffer buffer, boolean pre220) {
 		while (true) {
 			int opcode = buffer.get() & 0xFF;
 
@@ -298,6 +303,13 @@ public class ObjectType implements Type {
 				}
 
 				morphisms[length + 1] = var;
+			} else if (opcode == 91) {
+				opcode91 = buffer.get() & 0xFF;
+			} else if (opcode == 93) {
+				opcode92 = buffer.get() & 0xFF;
+				this.field2362 = buffer.getShort() & 0xFFFF;
+				opcode92_2 = buffer.get() & 0xFF;
+				this.field2363 = buffer.getShort() & 0xFFFF;
 			} else if (opcode == 249) {
 				int length = buffer.get() & 0xFF;
 
@@ -479,9 +491,9 @@ public class ObjectType implements Type {
 		}
 
 		if (surroundings != 0) { // good
-		    dos.writeByte(69);
-		    dos.writeByte(surroundings);
-        }
+			dos.writeByte(69);
+			dos.writeByte(surroundings);
+		}
 
 		if (offsetX != 0) { // good
 			dos.writeByte(70);
@@ -516,8 +528,8 @@ public class ObjectType implements Type {
 			dos.writeShort(ambientSoundId);
 			dos.writeByte(anInt2083);
 			//if(pre220) {
-				dos.writeByte(field2130);
-		//	}
+			dos.writeByte(field2130);
+			//	}
 		}
 
 		if ((anInt2112 != 0 || anInt2113 != 0 || anInt2083 != 0  || field2130 != 0) && anIntArray2084 != null) { // good
@@ -526,7 +538,7 @@ public class ObjectType implements Type {
 			dos.writeShort(anInt2113);
 			dos.writeByte(anInt2083);
 			//if(pre220) {
-				dos.writeByte(field2130);
+			dos.writeByte(field2130);
 			//}
 			dos.writeByte(anIntArray2084.length);
 			for (int i = 0; i < anIntArray2084.length; i++) {
@@ -552,20 +564,31 @@ public class ObjectType implements Type {
 		if ((varbit != -1 || varp != -1)
 				&& (morphisms != null && morphisms.length > 0)) {
 
-		    int value = morphisms[morphisms.length - 1];
+			int value = morphisms[morphisms.length - 1];
 
 			dos.writeByte(value != -1 ? 92 : 77);
 			dos.writeShort(varbit);
 			dos.writeShort(varp);
 
-            if (value != -1) {
-                dos.writeShort(morphisms[morphisms.length - 1]);
-            }
+			if (value != -1) {
+				dos.writeShort(morphisms[morphisms.length - 1]);
+			}
 
 			dos.writeByte(morphisms.length - 2);
 			for (int i = 0; i <= morphisms.length - 2; i++) {
 				dos.writeShort(morphisms[i]);
 			}
+		}
+		if (opcode91 != -1) { // good
+			dos.writeByte(91);
+			dos.writeByte(opcode91);
+		}
+		if (opcode92 != -1 || field2362 != -1 || opcode92_2 != -1 || field2363 != -1)  { // good
+			dos.writeByte(93);
+			dos.writeByte(opcode92);
+			dos.writeShort(field2362);
+			dos.writeByte(opcode92_2);
+			dos.writeShort(field2363);
 		}
 	}
 

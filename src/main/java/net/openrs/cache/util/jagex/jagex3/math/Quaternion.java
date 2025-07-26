@@ -1,20 +1,28 @@
 package net.openrs.cache.util.jagex.jagex3.math;
 
+import java.io.DataOutputStream;
+import java.io.IOException;
+
 public final class Quaternion {
    public static Quaternion[] pool = new Quaternion[0];
    public static int pool_limit = 100;
    public static int pool_cursor;
-   float y;
-   float w;
-   float x;
-   float z;
+   public float y;
+   public float w;
+   public float x;
+   public float z;
 
    static {
       pool = new Quaternion[100];
       pool_cursor = 0;
       new Quaternion();
    }
-
+   public void encode(DataOutputStream dos) throws IOException {
+      dos.writeFloat(x);
+      dos.writeFloat(y);
+      dos.writeFloat(z);
+      dos.writeFloat(w);
+   }
     public static Quaternion get() {
        synchronized(pool) {
           if (pool_cursor == 0) {

@@ -31,6 +31,13 @@ public class Trigonometry14Bits {
       int jangle = an & ANGLE_MASK;
       return (float)(TAU * (double)((float)jangle / ANGLE_FULL));
    }
+   public static short to_short(float radian) {
+      int jagAngle = (int) Math.round(radian * RADIANS_TO_JAG) & ANGLE_MASK;
+      return (short) jagAngle;
+   }
+   public static int from_radian(float radian) {
+      return (int) Math.round(radian * RADIANS_TO_JAG) & ANGLE_MASK;
+   }
 
    public static int atan2(int y, int x) {
       return (int)Math.round(Math.atan2(y, x) * RADIANS_TO_JAG) & ANGLE_MASK;

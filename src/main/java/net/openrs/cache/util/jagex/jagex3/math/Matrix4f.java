@@ -20,12 +20,34 @@ public final class Matrix4f {
       pool_cursor = 0;
       IDENTITY = new Matrix4f();
    }
-   public void encode(DataOutputStream dos) throws IOException {
-      // Write all 16 float values of the matrix
-      for (float value : this.values) {
-         dos.writeFloat(value);
+   public void encode(DataOutputStream dos, boolean compact) throws IOException {
+      if (compact) {
+         Matrix34f matrix = new Matrix34f();
+         matrix.m00 = this.values[0];
+         matrix.m01 = this.values[4];
+         matrix.m02 = this.values[8];
+
+         matrix.m10 = this.values[1];
+         matrix.m11 = this.values[5];
+         matrix.m12 = this.values[9];
+
+         matrix.m20 = this.values[2];
+         matrix.m21 = this.values[6];
+         matrix.m22 = this.values[10];
+
+         matrix.m03 = this.values[12];
+         matrix.m13 = this.values[13];
+         matrix.m23 = this.values[14];
+
+         matrix.encode(dos, false); // Compact 6-shorts encoding
+      } else {
+         for (float value : this.values) {
+            // Use endian-aware encoding for maximum compatibility
+            dos.writeInt(Integer.reverseBytes(Float.floatToIntBits(value)));
+         }
       }
    }
+
 
    public static Matrix4f take() {
       synchronized(pool) {

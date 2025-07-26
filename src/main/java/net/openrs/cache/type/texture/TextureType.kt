@@ -3,45 +3,47 @@ package net.openrs.cache.type.texture
 import net.openrs.cache.type.Type
 import java.io.DataOutputStream
 import java.io.IOException
+import net.openrs.util.uShort
+import net.openrs.util.uByte
 import java.nio.ByteBuffer
 
 class TextureType (private val id: Int) : Type {
      var fileIds: IntArray = IntArray(0)
      var field2293: Boolean = false
-     var field2301: IntArray = IntArray(0)
+    var field2301: IntArray = IntArray(0)
      var field2296: IntArray = IntArray(0)
-      var field2295: IntArray = IntArray(0)
-     var animationSpeed : Int = 0
+       var field2295: IntArray = IntArray(0)
+      var animationSpeed : Int = 0
      var animationDirection : Int = 0
-      var averageRGB: Int = -1
+       public var averageRGB: Int = -1
     override fun decode(buffer: ByteBuffer) {
-        averageRGB = buffer.getShort().toInt() and 0xFFFF;
-        field2293 = buffer.get().toInt() and 0xFF == 1
-        val count: Int = buffer.get().toInt() and 0xFF
+        averageRGB = buffer.uShort;
+        field2293 = buffer.uByte == 1
+        val count: Int = buffer.uByte
 
         if (count in 1..4) {
             fileIds = IntArray(count)
             for (index in 0 until count) {
-                fileIds[index] = buffer.getShort().toInt() and 0xFFFF;
+                fileIds[index] = buffer.uShort
             }
             if (count > 1) {
                 field2301 = IntArray(count - 1)
                 for (index in 0 until count - 1) {
-                    field2301[index] = buffer.get().toInt() and 0xFF
+                    field2301[index] = buffer.uByte
                 }
             }
             if (count > 1) {
                 field2296 = IntArray(count - 1)
                 for (index in 0 until count - 1) {
-                    field2296[index] = buffer.get().toInt() and 0xFF
+                    field2296[index] = buffer.uByte
                 }
             }
             field2295 = IntArray(count)
             for (index in 0 until count) {
                 field2295[index] = buffer.getInt()
             }
-            animationDirection = buffer.get().toInt() and 0xFF
-            animationSpeed = buffer.get().toInt() and 0xFF
+            animationDirection = buffer.uByte
+            animationSpeed = buffer.uByte
         } else {
             println("Texture: ${id} Out of range 1..4 [${count}]")
         }

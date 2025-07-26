@@ -27,12 +27,13 @@ package net.openrs.cache;
  */
 public final class Constants {
 	
-	public static final String CACHE_PATH = "./repository/226cache/";
+	public static final String CACHE_PATH = "./repository/cache/";
 	public static final String CACHE_PATH218 = "E:\\Server Tools\\server stuff\\server stuff\\osrs cache downloader\\data\\218\\";
 	public static final String CACHE_PATH1 = "./repository/525cache/";
 	public static final String CACHE_PATH_two = "./repository/508cache/";
 	public static final String CACHE_PATH_triee = "./repository/213cache/";
 	public static final String CACHE_PATH_four = "./repository/614cache/";
+	public static final String CACHE_PATH_five = "./repository/634cache/";
 	public static final String xmas_CACHE_PATH = "./repository/202cache/";
 	public static final String CACHEO_PATH = "./repository/cache-other/";
 	public static final String CACHETMP_PATH = "./repository/cache-tmp/";

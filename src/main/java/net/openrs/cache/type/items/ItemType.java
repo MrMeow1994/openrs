@@ -427,19 +427,22 @@ public class ItemType implements Type {
 		if (subOps != null) {
 			for (int var3 = 0; var3 < subOps.length; var3++) {
 				if (subOps[var3] != null) {
-					dos.writeByte(43); // Opcode for this section
-					dos.writeByte(var3); // Writing var3 (the sub-array index)
+					dos.writeByte(43); // Opcode
+					dos.writeByte(var3); // Sub-array index
 
 					for (int var5 = 0; var5 < subOps[var3].length; var5++) {
 						if (subOps[var3][var5] != null) {
-							dos.writeByte(var5 + 1); // Index offset (so -1 signals end)
-							dos.writeUTF(subOps[var3][var5]); // Writing the actual string
+							dos.writeByte(var5 + 1); // Matches buffer.get() - 1
+							dos.write(ArrayUtils.toByteArray(subOps[var3][var5]));
+							dos.writeByte(10); // String terminator
 						}
 					}
-					dos.writeByte(0); // End of list marker (because reading logic uses get() - 1)
+
+					dos.writeByte(0); // End of list
 				}
 			}
 		}
+
 
 		if (searchable) {
 			dos.writeByte(65);

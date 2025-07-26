@@ -86,13 +86,14 @@ public class NpcType implements Type {
 	public int crawlRightSequence = -1;
 	public int crawlLeftSequence = -1;
 	private boolean is210 = true;
+	int footprintSize = -1;
 	public int archiveRevision = 1;
 	public int REV_210_NPC_ARCHIVE_REV = 1493;
 
 	private String unknown1 = "Property of titan vault.";
 	private boolean lowPriorityFollowerOps = false;
 	private int field2030 = -1;
-	int[] field2032 = new int[]{1, 1, 1, 1, 1, 1};
+	int[] stats = new int[]{1, 1, 1, 1, 1, 1};
 
 	public NpcType(int id) {
 		this.id = id;
@@ -165,17 +166,17 @@ public class NpcType implements Type {
 						models_2[idx] = buffer.getShort() & 0xFFFF;
 					}
 				} else if(opcode == 74) {
-					this.field2032[0] = buffer.getShort() & 0xFFFF;
+					this.stats[0] = buffer.getShort() & 0xFFFF;
 				} else if(opcode == 75) {
-					this.field2032[1] = buffer.getShort() & 0xFFFF;
+					this.stats[1] = buffer.getShort() & 0xFFFF;
 				} else if(opcode == 76) {
-					this.field2032[2] = buffer.getShort() & 0xFFFF;
+					this.stats[2] = buffer.getShort() & 0xFFFF;
 				} else if(opcode == 77) {
-					this.field2032[3] = buffer.getShort() & 0xFFFF;
+					this.stats[3] = buffer.getShort() & 0xFFFF;
 				} else if(opcode == 78) {
-					this.field2032[4] = buffer.getShort() & 0xFFFF;
+					this.stats[4] = buffer.getShort() & 0xFFFF;
 				} else if(opcode == 79) {
-					this.field2032[5] = buffer.getShort() & 0xFFFF;
+					this.stats[5] = buffer.getShort() & 0xFFFF;
 				} else if (opcode == 93) {
 					renderOnMinimap = false;
 				} else if (opcode == 95) {
@@ -255,8 +256,8 @@ public class NpcType implements Type {
 					aBool107 = false;
 				} else if (opcode == 109) {
 					isClickable = false;
-				//} else if (opcode == 111) {
-				//	aBool2190 = true;
+				} else if (opcode == 111) {
+					aBool2190 = true;
 				} else if (opcode == 114) {
 					runSequence = (buffer.getShort() & 0xFFFF);
 				} else if (opcode == 115) {
@@ -277,6 +278,8 @@ public class NpcType implements Type {
 					aBool2190 = true;
 				} else if(opcode == 124) {
 					field2030 = (buffer.getShort() & 0xFFFF);
+				} else if(opcode == 126) {
+					footprintSize = (buffer.getShort() & 0xFFFF);
 				} else if (opcode == 249) {
 					int length = buffer.get() & 0xFF;
 
@@ -393,29 +396,29 @@ public class NpcType implements Type {
 					dos.writeShort(models_2[i]);
 				}
 			}
-		if (field2032[0] != 1) {
+		if (stats[0] != 1) {
 			dos.writeByte(74);
-			dos.writeShort(field2032[0]);
+			dos.writeShort(stats[0]);
 		}
-		if (field2032[1] != 1) {
+		if (stats[1] != 1) {
 			dos.writeByte(75);
-			dos.writeShort(field2032[1]);
+			dos.writeShort(stats[1]);
 		}
-		if (field2032[2] != 1) {
+		if (stats[2] != 1) {
 			dos.writeByte(76);
-			dos.writeShort(field2032[2]);
+			dos.writeShort(stats[2]);
 		}
-		if (field2032[3] != 1) {
+		if (stats[3] != 1) {
 			dos.writeByte(77);
-			dos.writeShort(field2032[3]);
+			dos.writeShort(stats[3]);
 		}
-		if (field2032[4] != 1) {
+		if (stats[4] != 1) {
 			dos.writeByte(78);
-			dos.writeShort(field2032[4]);
+			dos.writeShort(stats[4]);
 		}
-		if (field2032[5] != 1) {
+		if (stats[5] != 1) {
 			dos.writeByte(79);
-			dos.writeShort(field2032[5]);
+			dos.writeShort(stats[5]);
 		}
 			if (!renderOnMinimap) {
 				dos.writeByte(93);
@@ -487,7 +490,9 @@ public class NpcType implements Type {
 			if (!isClickable) {
 				dos.writeByte(109);
 			}
-
+		if (!aBool2190) {
+			dos.writeByte(111);
+		}
 		if (runSequence != -1) {
 			dos.writeByte(114);
 			dos.writeShort(runSequence);
@@ -521,6 +526,10 @@ public class NpcType implements Type {
 		if (field2030 != -1) {
 			dos.writeByte(124);
 			dos.writeShort(field2030);
+		}
+		if (footprintSize != -1) {
+			dos.writeByte(126);
+			dos.writeShort(footprintSize);
 		}
 	}
 

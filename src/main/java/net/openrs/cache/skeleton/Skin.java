@@ -108,7 +108,7 @@ public class Skin {
             dos.writeShort(skeletalAnimBase.bones.length);
             for (AnimationBone bone : skeletalAnimBase.bones) {
                 if (bone != null) {
-                    bone.encode(dos);
+                    bone.encode(dos, false);
                 }
             }
         }

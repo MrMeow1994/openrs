@@ -63,39 +63,27 @@ public class SpotAnimTypeList implements TypeList<SpotAnimType> {
 	@Override
 	public void initialize(Cache cache) {
 		int count = 0;
-		ReferenceTable table = cache.getReferenceTable(21);
-		List<SpotAnimType> loadedSequences = new ArrayList<>();
+		try {
+			ReferenceTable table = cache.getReferenceTable(CacheIndex.CONFIGS);
+			Entry entry = table.getEntry(ConfigArchive.SPOTANIM);
+			Archive archive = Archive.decode(cache.read(CacheIndex.CONFIGS, ConfigArchive.SPOTANIM).getData(),
+					entry.size());
 
-		for (int archiveId = 0; archiveId < table.size(); archiveId++) {
-			Entry entry = table.getEntry(archiveId);
-			if (entry == null)
-				continue;
-
-			Archive archive;
-			try {
-				archive = Archive.decode(cache.read(21, archiveId).getData(), entry.size());
-			} catch (Exception e) {
-				continue;
-			}
-
-			for (int childId = 0; childId < entry.capacity(); childId++) {
-				ChildEntry child = entry.getEntry(childId);
+			spots = new SpotAnimType[entry.capacity()];
+			for (int id = 0; id < entry.capacity(); id++) {
+				ChildEntry child = entry.getEntry(id);
 				if (child == null)
 					continue;
 
 				ByteBuffer buffer = archive.getEntry(child.index());
-				SpotAnimType type = new SpotAnimType(childId);
-				try {
-					type.decode(buffer);
-					loadedSequences.add(type);
-					count++;
-				} catch (Exception e) {
-					System.err.println("Failed to decode SpotAnimType " + archiveId + ":" + childId);
-				}
+				SpotAnimType type = new SpotAnimType(id);
+				type.decode(buffer);
+				spots[id] = type;
+				count++;
 			}
+		} catch (IOException e) {
+			logger.log(Level.SEVERE, "Error Loading SequenceType(s)!", e);
 		}
-
-		spots = loadedSequences.toArray(new SpotAnimType[0]);
 		logger.info("Loaded " + count + " SequenceType(s)!");
 	}
 	@Override

@@ -36,21 +36,35 @@ public class Matrix34f {
       this.m11 = 1.0F;
       this.m00 = 1.0F;
    }
-   public void encode(DataOutputStream dos) throws IOException {
-      // Write each matrix component as a float
-      dos.writeFloat(m00);
-      dos.writeFloat(m01);
-      dos.writeFloat(m02);
-      dos.writeFloat(m03);
-      dos.writeFloat(m10);
-      dos.writeFloat(m11);
-      dos.writeFloat(m12);
-      dos.writeFloat(m13);
-      dos.writeFloat(m20);
-      dos.writeFloat(m21);
-      dos.writeFloat(m22);
-      dos.writeFloat(m23);
+   public void encode(DataOutputStream dos, boolean compact) throws IOException {
+      if (compact) {
+         // Extract Euler rotations from the matrix
+         float rotX = (float) Math.atan2(m21, m22);
+         float rotY = (float) -Math.asin(m20);
+         float rotZ = (float) Math.atan2(m10, m00);
+
+         // Convert to packed 14-bit format using helper
+         short x = Trigonometry14Bits.to_short(rotX);
+         short y = Trigonometry14Bits.to_short(rotY);
+         short z = Trigonometry14Bits.to_short(rotZ);
+
+         // Write in little-endian to match typical cache format
+         dos.writeShort(Short.reverseBytes(x));
+         dos.writeShort(Short.reverseBytes(y));
+         dos.writeShort(Short.reverseBytes(z));
+
+         // Translate values as shorts (assume 1:1 float → short, can scale if needed)
+         dos.writeShort(Short.reverseBytes((short) m03));
+         dos.writeShort(Short.reverseBytes((short) m13));
+         dos.writeShort(Short.reverseBytes((short) m23));
+      } else {
+         // Full float encoding
+         dos.writeFloat(m00); dos.writeFloat(m01); dos.writeFloat(m02); dos.writeFloat(m03);
+         dos.writeFloat(m10); dos.writeFloat(m11); dos.writeFloat(m12); dos.writeFloat(m13);
+         dos.writeFloat(m20); dos.writeFloat(m21); dos.writeFloat(m22); dos.writeFloat(m23);
+      }
    }
+
 
    void rotate_x(float arg0) {
       float var3 = (float)Math.cos(arg0);

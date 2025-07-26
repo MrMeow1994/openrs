@@ -26,7 +26,6 @@ import net.openrs.cache.util.Sound
 import net.openrs.cache.util.Sound.Companion.encodeFrameSound
 import net.openrs.util.revisionIsOrAfter
 import net.openrs.util.revisionIsOrBefore
-import net.openrs.util.write24bitInt
 import java.io.DataOutputStream
 import java.io.IOException
 import java.nio.ByteBuffer
@@ -52,6 +51,8 @@ class SequenceType(private val id: Int) : Type {
     var rightHandItem = -1
     var replayMode = 2
     var precedenceAnimating = -1
+    var animationHeightOffset = 0
+    var field2483 = false
     private var unknown: BooleanArray? = null
     private var field2174: MutableMap<Int, Sound> = emptyMap<Int, Sound>().toMutableMap()
     private var skeletalRangeBegin = -1
@@ -154,6 +155,8 @@ class SequenceType(private val id: Int) : Type {
                     if (revisionIsOrBefore(225)) {
                         skeletalRangeBegin = buffer.short.toInt() and 0xFFFF
                         skeletalRangeEnd = buffer.short.toInt() and 0xFFFF
+                    } else {
+                        animationHeightOffset = buffer.get().toInt()
                     }
                 }
                 17 -> {
@@ -162,6 +165,9 @@ class SequenceType(private val id: Int) : Type {
                     for (i in 0 until count) {
                         unknown!![buffer.get().toInt() and 0xFF] = true
                     }
+                }
+                19 -> {
+                    this.field2483 = true
                 }
             }
         }
@@ -295,6 +301,11 @@ class SequenceType(private val id: Int) : Type {
                 dos.writeShort(skeletalRangeBegin)
                 dos.writeShort(skeletalRangeEnd)
             }
+        } else {
+            if(animationHeightOffset != 0) {
+                dos.writeByte(16)
+                dos.writeByte(animationHeightOffset)
+            }
         }
 
         unknown?.let { flags ->
@@ -303,6 +314,9 @@ class SequenceType(private val id: Int) : Type {
             flags.forEachIndexed { index, state ->
                 if (state) dos.writeByte(index)
             }
+        }
+        if(field2483){
+            dos.writeByte(19)
         }
     }
 

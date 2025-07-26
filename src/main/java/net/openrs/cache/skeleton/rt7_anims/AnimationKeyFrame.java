@@ -1,6 +1,8 @@
 package net.openrs.cache.skeleton.rt7_anims;
 
 
+import net.openrs.cache.util.jagex.jagex3.math.Quaternion;
+
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -101,6 +103,25 @@ public class AnimationKeyFrame {
       } else {
          dos.writeInt(0);  // No keyframes available
       }
+         Quaternion q = Quaternion.get();
+         q.rotate(1, 0, 0, start); // start = X angle
+         Quaternion qY = Quaternion.get();
+         qY.rotate(0, 1, 0, end);  // end = Y angle or whatever
+         q.mul(qY);
+         qY.release();
+
+         Quaternion qZ = Quaternion.get();
+         qZ.rotate(0, 0, 1, (start + end) / 2); // rough Z average
+         q.mul(qZ);
+         qZ.release();
+
+         // Optional: tag the encoding so client knows a quaternion is present
+         dos.writeBoolean(true);
+         dos.writeFloat(q.x);
+         dos.writeFloat(q.y);
+         dos.writeFloat(q.z);
+         dos.writeFloat(q.w);
+         q.release();
    }
    int get_start_tick() {
       return this.start_tick;

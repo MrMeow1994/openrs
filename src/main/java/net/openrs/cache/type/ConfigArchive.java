@@ -27,7 +27,7 @@ package net.openrs.cache.type;
  * @since May 27, 2015
  */
 public enum ConfigArchive {
-
+	TEXTURES(0),
 	UNDERLAY(1),
 	IDENTKIT(3),
 	OVERLAY(4),
@@ -40,14 +40,15 @@ public enum ConfigArchive {
 	SEQUENCE(12),
 	SPOTANIM(13),
 	VARBIT(14),
-	TEXTURES(0),
 	VARCLIENT(19),
 	VARCLIENTSTRING(15),
 	VARPLAYER(16),
 	HITSPLAT(32),
 	HEALTHBAR(33),
 	STRUCT(34),
-	AREA(35);
+	AREA(35),
+	DBROW(38),
+	DBTABLE(39);
 
 	private final int id;
 

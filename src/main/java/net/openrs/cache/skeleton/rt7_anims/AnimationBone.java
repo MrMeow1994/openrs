@@ -31,20 +31,14 @@ public class AnimationBone {
       }
    }
 
-   // Encode method for saving data
-   public void encode(DataOutputStream dos) throws IOException {
-      // Write parent ID
+   public void encode(DataOutputStream dos, boolean compact) throws IOException {
       dos.writeShort(parent_id);
-
-      // Write each frame's data
       for (int frame_id = 0; frame_id < local_matrix.length; ++frame_id) {
-         // Write local matrix
-         local_matrix[frame_id].encode(dos);
-
-         // Write vertex data
+         local_matrix[frame_id].encode(dos, compact);
          dos.writeFloat(bone_vertices[frame_id][0]);
          dos.writeFloat(bone_vertices[frame_id][1]);
          dos.writeFloat(bone_vertices[frame_id][2]);
       }
    }
+
 }

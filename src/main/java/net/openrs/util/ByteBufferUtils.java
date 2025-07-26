@@ -402,4 +402,18 @@ public final class ByteBufferUtils {
 		}
 		return i;
 	}
+
+	public static int packBytesToInt(ByteBuffer buffer) {
+		int var2 = 0;
+		int var3 = 0;
+
+		int var1;
+		do {
+			var1 = buffer.get() & 0xFF;
+			var2 |= (var1 & 127) << var3;
+			var3 += 7;
+		} while(var1 > 127);
+
+		return var2;
+	}
 }
