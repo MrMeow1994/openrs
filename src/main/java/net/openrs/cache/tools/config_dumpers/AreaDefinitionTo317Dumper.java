@@ -14,13 +14,13 @@ import java.io.IOException;
 public class AreaDefinitionTo317Dumper {
 
     public static void main(String[] args) throws IOException {
-        File dir = new File("E:/dump");
+        File dir = new File("E:/sailing-dump");
 
         if (!dir.exists()) {
             dir.mkdirs();
         }
 
-        try(Cache cache = new Cache(FileStore.open(Constants.CACHE_PATH))) {
+        try(Cache cache = new Cache(FileStore.open(Constants.SAILING_CACHE_PATH))) {
             AreaTypeList list = new AreaTypeList();
             list.initialize(cache);
 

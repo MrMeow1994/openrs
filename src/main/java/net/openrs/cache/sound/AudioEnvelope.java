@@ -59,7 +59,7 @@ public class AudioEnvelope {
                 this.phaseIndex = this.segments - 1;
             }
 
-            this.ticks = (int)((double)this.durations[this.phaseIndex] / 65536.0D * (double)var1);
+            this.ticks = (int)((double)this.durations[this.phaseIndex] / 65536.0 * (double)var1);
             if(this.ticks > this.max) {
                 this.step = ((this.phases[this.phaseIndex] << 15) - this.amplitude) / (this.ticks - this.max);
             }

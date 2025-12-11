@@ -13,13 +13,13 @@ import net.openrs.cache.type.sequences.SequenceTypeList;
 public class SeqTo317Converter {
 
     public static void main(String[] args) throws Exception {
-        File dir = new File("E:/dump");
+        File dir = new File("E:/sailing-dump");
 
         if (!dir.exists()) {
             dir.mkdirs();
         }
 
-        try(Cache cache = new Cache(FileStore.open(Constants.CACHE_PATH))) {
+        try(Cache cache = new Cache(FileStore.open(Constants.SAILING_CACHE_PATH))) {
             SequenceTypeList list = new SequenceTypeList();
             list.initialize(cache);
 

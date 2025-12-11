@@ -14,8 +14,8 @@ import net.openrs.cache.type.spotanims.SpotAnimTypeList;
 public class GraphicsTo317Dumper {
 
     public static void main(String[] args) {
-        try (Cache cache = new Cache(FileStore.open(Constants.CACHE_PATH))) {
-            File dir = new File("E:/dump");
+        try (Cache cache = new Cache(FileStore.open(Constants.SAILING_CACHE_PATH))) {
+            File dir = new File("E:/sailing-dump");
 
             if (!dir.exists()) {
                 dir.mkdirs();

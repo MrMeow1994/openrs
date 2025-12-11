@@ -9,108 +9,126 @@ import net.openrs.cache.util.CompressionUtils;
 
 import java.io.*;
 import java.nio.ByteBuffer;
-import java.util.HashSet;
-import java.util.Objects;
-import java.util.Set;
-
-import static net.openrs.cache.skeleton.Skeleton.decode;
 
 public class AnimationDumper {
 
-    static Set<Integer> packedHeaders = new HashSet<>();
+    public static boolean headerPacked;
 
     public static void main(String[] args) throws Exception {
         try (Cache cache = new Cache(FileStore.open(Constants.CACHE_PATH))) {
-            final File dir = new File("E:/dump/test/");
+            File dir = new File("E:/dump3/test/");
+            if (!dir.exists()) dir.mkdirs();
 
-            if (!dir.exists()) {
-                dir.mkdirs();
-            }
             AnimKeyFrameSet.init();
-            final ReferenceTable skeletonTable = cache.getReferenceTable(CacheIndex.FRAMES);
 
+            final ReferenceTable skeletonTable = cache.getReferenceTable(CacheIndex.FRAMES);
+            final ReferenceTable keyframeTable = cache.getReferenceTable(CacheIndex.SKELETAL_KEYFRAMES);
             final Skeleton[][] skeletons = new Skeleton[skeletonTable.capacity()][];
 
-            for (int mainSkeletonId = 3754; mainSkeletonId < skeletonTable.capacity(); mainSkeletonId++) {
+            for (int mainId = 0; mainId < skeletons.length; mainId++) {
+                if (skeletonTable.getEntry(mainId) == null) continue;
 
-                if (skeletonTable.getEntry(mainSkeletonId) == null) {
-                    continue;
-                }
+                System.out.println("=== Processing mainId: " + mainId + " ===");
+                ByteArrayOutputStream bos = new ByteArrayOutputStream();
+                try (DataOutputStream dos = new DataOutputStream(bos)) {
 
-                final ByteArrayOutputStream bos = new ByteArrayOutputStream();
+                    // 1️⃣ Normal skeleton frames
+                    Container frameContainer = cache.read(CacheIndex.FRAMES, mainId);
+                    if (frameContainer != null) {
+                        Archive skeletonArchive = Archive.decode(frameContainer.getData(),
+                                skeletonTable.getEntry(mainId).size());
+                        if (skeletonArchive != null) {
+                            skeletons[mainId] = new Skeleton[skeletonArchive.size()];
+                            boolean localHeader = false;
 
-                try (DataOutputStream dat = new DataOutputStream(bos)) {
-                    Archive skeletonArchive = Archive.decode(cache.read(CacheIndex.FRAMES, mainSkeletonId).getData(), skeletonTable.getEntry(mainSkeletonId).size());
+                            for (int subId = 0; subId < skeletonArchive.size(); subId++) {
+                                ByteBuffer buffer = skeletonArchive.getEntry(subId);
+                                if (buffer == null || buffer.remaining() == 0) continue;
 
-                    if (skeletonArchive == null) {
-                        continue;
+                                int skinId = ((buffer.array()[0] & 0xFF) << 8) | (buffer.array()[1] & 0xFF);
+                                Container skinContainer = cache.read(CacheIndex.FRAMEMAPS, skinId);
+                                if (skinContainer == null) {
+                                    System.out.println("Missing skin container for skinId=" + skinId);
+                                    continue;
+                                }
+
+                                ByteBuffer skinBuffer = skinContainer.getData();
+                                if (skinBuffer == null) {
+                                    System.out.println("Missing skin buffer for skinId=" + skinId);
+                                    continue;
+                                }
+
+                                Skin skin = Skin.decode(skinBuffer, false, skinBuffer.remaining());
+                                if (skin == null) {
+                                    System.out.println("Failed decoding skin for skinId=" + skinId);
+                                    continue;
+                                }
+
+                                if (!localHeader) {
+                                    // ✅ FIX: use hasSkeletal() instead of direct skeletalAnimBase check
+                                    dos.writeShort(skin.hasSkeletal() ? 420 : 710);
+                                    dos.writeInt(skeletons.length);
+                                    skin.encode(dos, false);
+                                    dos.writeShort(skeletonArchive.size());
+                                    localHeader = true;
+                                }
+
+                                dos.writeShort(subId);
+                                skeletons[mainId][subId] = Skeleton.decode(buffer, skin, dos);
+
+// ✅ FIX: proper debug
+                                System.out.printf("Normal frame: mainId=%d, subId=%d, skinId=%d, hasSkeletal=%s%n",
+                                        mainId, subId, skinId, skin.hasSkeletal());
+
+                            }
+                        }
+                    } else {
+                        System.out.println("No normal frame container for mainId=" + mainId);
                     }
 
-                    final int subSkeletonCount = skeletonArchive.size();
+                    // 2️⃣ Skeletal keyframes after normal frames
+                    Container skeletalContainer = cache.read(CacheIndex.SKELETAL_KEYFRAMES, mainId);
+                    if (skeletalContainer == null || skeletalContainer.getData().remaining() == 0) {
+                        System.out.println("No skeletal keyframes found for mainId=" + mainId);
+                    } else {
+                        ByteBuffer skeletalBuffer = skeletalContainer.getData().duplicate();
+                        skeletalBuffer.rewind();
+                        int subIdOffset = (skeletons[mainId] != null) ? skeletons[mainId].length : 0;
 
+                        System.out.printf("Skeletal keyframes detected for mainId=%d, buffer remaining=%d%n",
+                                mainId, skeletalBuffer.remaining());
 
-                    skeletons[mainSkeletonId] = new Skeleton[subSkeletonCount];
+                        try {
+                            AnimKeyFrameSet keyFrameSet = AnimKeyFrameSet.load(mainId, skeletalBuffer);
+                            if (keyFrameSet == null || keyFrameSet.base.transforms_count() == 0) {
+                                System.out.println("No valid skeletal keyframes for mainId=" + mainId);
+                            } else {
+                                for (int i = 0; i < keyFrameSet.base.transforms_count(); i++) {
+                                    dos.writeShort(subIdOffset + i);
+                                    keyFrameSet.encode(dos, i);
+                                    System.out.printf("Wrote skeletal keyframe: mainId=%d, keyframeIndex=%d%n", mainId, i);
+                                }
+                            }
 
-                    for (int subSkeletonId = 0; subSkeletonId < subSkeletonCount; subSkeletonId++) {
-                        readNext(cache, dat, skeletonArchive, mainSkeletonId, subSkeletonId, skeletons);
+                        } catch (Exception e) {
+                            System.err.println("⚠️ Failed loading skeletal keyframes for mainId=" + mainId);
+                            e.printStackTrace();
+                            byte[] raw = new byte[skeletalBuffer.remaining()];
+                            skeletalBuffer.get(raw);
+                            dos.write(raw);
+                        }
                     }
                 }
 
-                try (FileOutputStream fos = new FileOutputStream(new File(dir, mainSkeletonId + ".gz"))) {
+                // Write merged output
+                try (FileOutputStream fos = new FileOutputStream(new File(dir, mainId + ".gz"))) {
                     fos.write(CompressionUtils.gzip(bos.toByteArray()));
                 }
 
-                double progress = (double) (mainSkeletonId + 1) / skeletonTable.capacity() * 100;
-
-                System.out.println(String.format("%.2f%s", progress, "%"));
-
+                System.out.printf("Progress: %.2f%%%n", (double)(mainId+1)/skeletonTable.capacity()*100);
             }
 
-            System.out.println(String.format("Dumped %d skeletons.", skeletonTable.capacity()));
+            System.out.println("✅ Finished dumping normal frames + skeletal keyframes.");
         }
-
-    }
-
-    public static void readNext(Cache cache, DataOutputStream dos, Archive archive, int mainSkeletonId, int subSkeletonId, Skeleton[][] skeletons) throws IOException {
-            final ByteBuffer skeletonBuffer = archive.getEntry(subSkeletonId);
-
-            if (skeletonBuffer.remaining() == 0) {
-                return;
-            }
-
-            final int skinId = ((skeletonBuffer.array()[0] & 255) << 8) | (skeletonBuffer.array()[1] & 255);
-
-            final Container skinContainer = cache.read(CacheIndex.FRAMEMAPS, skinId);
-
-            final ByteBuffer skinBuffer = skinContainer.getData();
-
-            if (skinBuffer == null) {
-                return;
-            }
-
-            final Skin skin = Skin.decode(skinBuffer, false, skinBuffer.remaining());
-
-        if (!packedHeaders.contains(mainSkeletonId)) {
-            System.out.println(skinId);
-
-            dos.writeShort(skin.skeletalAnimBase != null ? 420 : 710); // magic revision IDs?
-            dos.writeInt(skeletons.length);
-            skin.encode(dos, false);
-            dos.writeShort(archive.size());
-
-            packedHeaders.add(mainSkeletonId);
-        }
-
-
-            dos.writeShort(subSkeletonId);
-
-            if (skin.skeletalAnimBase == null) {
-                skeletons[mainSkeletonId][subSkeletonId] = decode(skeletonBuffer, skin, dos);
-            } else {
-                AnimKeyFrameSet keyFrameSet = AnimKeyFrameSet.load(skinId, skeletonBuffer);
-                keyFrameSet.encode(dos);
-                // Handle encoding or storing of AnimKeyFrameSet as needed
-            }
-
     }
 }

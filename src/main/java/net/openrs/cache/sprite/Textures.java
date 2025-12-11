@@ -87,7 +87,7 @@ public class Textures {
 					pixelgrabber.grabPixels();
 					for (int frame = 0; frame < sprite.size(); frame++) {
 						File files = new File(Constants.TEXTURE_PATH, id +  ".png");
-						BufferedImage image = ImageUtils.createColoredBackground(ImageUtils.makeColorTransparent(sprite.getFrame(frame), Color.WHITE), new java.awt.Color(0xFF00FF, false));
+						BufferedImage image = ImageUtils.createColoredBackground2(ImageUtils.makeColorTransparent2(sprite.getFrame(frame), Color.WHITE), new java.awt.Color(0xFF00FF, false));
 
 						ImageIO.write(image, "png", files);
 					}

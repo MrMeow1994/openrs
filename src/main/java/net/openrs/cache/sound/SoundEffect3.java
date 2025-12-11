@@ -32,11 +32,14 @@ public class SoundEffect3 {
         return 1.0F - (float)Math.pow(10.0D, (double)(-var4 / 20.0F));
     }
 
-    float interpolatePhase(int var1, int var2, float var3) {
-        float var4 = (float)this.phases[var1][0][var2] + var3 * (float)(this.phases[var1][1][var2] - this.phases[var1][0][var2]);
-        var4 *= 1.2207031E-4F;
-        return normalise(var4);
+
+    float interpolatePhase(int i, int i_13_, float f) {
+        float f_14_ = (float)this.phases[i][0][i_13_]
+                + f * (float)(this.phases[i][1][i_13_] - this.phases[i][0][i_13_]);
+        f_14_ *= 1.2207031E-4F;
+        return normalise(f_14_);
     }
+
 
     int compute(int var1, float var2) {
         float var3;
@@ -124,9 +127,9 @@ public class SoundEffect3 {
         }
 
     }
-
-    static float normalise(float var0) {
-        float var1 = 32.703197F * (float)Math.pow(2.0D, (double)var0);
-        return var1 * 3.1415927F / 11025.0F;
+    static float normalise(float f) {
+        float f_15_ = 32.703197F * (float)Math.pow(2.0, (double)f);
+        return f_15_ * (float) Math.PI / 11025.0F;
     }
+
 }

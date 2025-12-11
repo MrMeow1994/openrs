@@ -40,13 +40,13 @@ import net.openrs.cache.util.CompressionUtils;
 public class ModelDumper {
 
 	public static void main(String[] args) throws IOException {
-		File dir = new File("E:/dump/index1/");
+		File dir = new File("E:/sailing-dump/index1/");
 
 		if (!dir.exists()) {
 			dir.mkdirs();
 		}
 
-		try (Cache cache = new Cache(FileStore.open(Constants.CACHE_PATH))) {
+		try (Cache cache = new Cache(FileStore.open(Constants.SAILING_CACHE_PATH))) {
 			ReferenceTable table = cache.getReferenceTable(7);
 
 			for (int i = 0; i < table.capacity(); i++) {

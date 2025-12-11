@@ -53,10 +53,10 @@ public class TextureDumper {
 			directory.mkdirs();
 		}
 		int count = 0;
-		try (Cache cache = new Cache(FileStore.open(Constants.CACHE_PATH_four))) {
-			ReferenceTable table = cache.getReferenceTable(28);
+		try (Cache cache = new Cache(FileStore.open(Constants._CACHE_PATH_six_six_one))) {
+			ReferenceTable table = cache.getReferenceTable(CacheIndex.TEXTURES);
 			ReferenceTable.Entry entry = table.getEntry(0);
-			Archive archive = Archive.decode(cache.read(28, 0).getData(), entry.size());
+			Archive archive = Archive.decode(cache.read(CacheIndex.TEXTURES, 0).getData(), entry.size());
 
 			int[] ids = new int[entry.capacity()];
 			colors = new int[entry.capacity()];
@@ -87,16 +87,46 @@ public class TextureDumper {
 				PixelGrabber pixelgrabber = new PixelGrabber(img, 0, 0, width, height, pixels, 0, width);
 				try {
 					pixelgrabber.grabPixels();
-					for (int frame = 0; frame < sprite.size(); frame++) {
-						File files = new File(Constants.TEXTURE_PATH, id +  ".png");
-						BufferedImage image = ImageUtils.createColoredBackground(ImageUtils.makeColorTransparent(sprite.getFrame(frame), Color.WHITE), new java.awt.Color(0xFF00FF, false));
 
-						ImageIO.write(image, "png", files);
+					for (int frame = 0; frame < sprite.size(); frame++) {
+						BufferedImage frameImage = sprite.getFrame(frame);
+
+						// 1️⃣ Make white transparent
+						BufferedImage transparent = ImageUtils.makeColorTransparent2(frameImage, Color.WHITE);
+
+						// Save transparent version
+						File transparentFile = new File(Constants.TEXTURE_PATH, "transparent/" + id + "_" + frame + ".png");
+						transparentFile.getParentFile().mkdirs(); // ensure directory exists
+						ImageIO.write(transparent, "png", transparentFile);
+
+						// 2️⃣ Replace transparency with magenta background
+						BufferedImage magentaBackground = new BufferedImage(
+								transparent.getWidth(),
+								transparent.getHeight(),
+								BufferedImage.TYPE_INT_ARGB
+						);
+
+						int magentaRGB = new Color(255, 0, 255, 255).getRGB();
+
+						for (int y = 0; y < transparent.getHeight(); y++) {
+							for (int x = 0; x < transparent.getWidth(); x++) {
+								int pixel = transparent.getRGB(x, y);
+								int alpha = (pixel >> 24) & 0xFF;
+								magentaBackground.setRGB(x, y, alpha == 0 ? magentaRGB : pixel);
+							}
+						}
+
+						// Save magenta background version
+						File magentaFile = new File(Constants.TEXTURE_PATH, "magenta/" + id + "_" + frame + ".png");
+						magentaFile.getParentFile().mkdirs();
+						ImageIO.write(magentaBackground, "png", magentaFile);
 					}
-				} catch (InterruptedException e1) {
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
+
+				} catch (InterruptedException er) {
+					er.printStackTrace();
 				}
+
+
 				colors[id] = averageColorForPixels(pixels);
 			}
 		} catch (IOException e) {

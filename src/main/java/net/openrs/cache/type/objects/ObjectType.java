@@ -60,7 +60,7 @@ public class ObjectType implements Type {
 	public int ambientLighting = 0;
 	public int contrast = 0;
 	public String[] actions = new String[5];
-	public boolean clipType = true;
+	public int interactType = 2;
 	public int mapscene = -1;
 	public int surroundings;
 	public short[] recolorToReplace;
@@ -94,6 +94,7 @@ public class ObjectType implements Type {
 	public int field2362 = 300;
 	public int field2363 = 300;
 	private int field2130 = 0;
+	private int field2334 = -1;
 	private short[] colorplateToFind;
 	private short[] colorplateToReplace;
 
@@ -141,7 +142,7 @@ public class ObjectType implements Type {
 			} else if (opcode == 15) {
 				length = buffer.get() & 0xFF;
 			} else if (opcode == 17) {
-				clipType = false;
+				interactType = 0;
 				blocksProjectile = false;
 			} else if (opcode == 18) {
 				blocksProjectile = false;
@@ -159,7 +160,7 @@ public class ObjectType implements Type {
 					animation = -1;
 				}
 			} else if (opcode == 27) {
-				clipType = true;
+				interactType = 1;
 			} else if (opcode == 28) {
 				decorDisplacement = buffer.get() & 0xFF;
 			} else if (opcode == 29) {
@@ -310,6 +311,8 @@ public class ObjectType implements Type {
 				this.field2362 = buffer.getShort() & 0xFFFF;
 				opcode92_2 = buffer.get() & 0xFF;
 				this.field2363 = buffer.getShort() & 0xFFFF;
+			} else if(opcode == 95){
+				field2334 = buffer.get() & 0xFF;
 			} else if (opcode == 249) {
 				int length = buffer.get() & 0xFF;
 
@@ -379,7 +382,7 @@ public class ObjectType implements Type {
 			dos.writeByte(length);
 		}
 
-		if (!clipType || !blocksProjectile) { // good
+		if (interactType == 0 || !blocksProjectile) { // good
 			dos.writeByte(17);
 		}
 
@@ -409,7 +412,7 @@ public class ObjectType implements Type {
 			dos.writeShort(animation);
 		}
 
-		if (clipType) { // good
+		if (interactType == 1) { // good
 			dos.writeByte(27);
 		}
 
@@ -548,7 +551,7 @@ public class ObjectType implements Type {
 
 		if (contouredGround != -1) { // good
 			dos.writeByte(81);
-			dos.writeByte(contouredGround);
+			dos.writeByte(contouredGround  / 256);
 		}
 
 		if (mapIcon != -1) { // good
@@ -578,17 +581,6 @@ public class ObjectType implements Type {
 			for (int i = 0; i <= morphisms.length - 2; i++) {
 				dos.writeShort(morphisms[i]);
 			}
-		}
-		if (opcode91 != -1) { // good
-			dos.writeByte(91);
-			dos.writeByte(opcode91);
-		}
-		if (opcode92 != -1 || field2362 != -1 || opcode92_2 != -1 || field2363 != -1)  { // good
-			dos.writeByte(93);
-			dos.writeByte(opcode92);
-			dos.writeShort(field2362);
-			dos.writeByte(opcode92_2);
-			dos.writeShort(field2363);
 		}
 	}
 

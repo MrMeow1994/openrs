@@ -425,7 +425,7 @@ public class MapImageDumper {
 
 		graphics.dispose();
 
-		ImageIO.write(fullImage, "png", output.resolve("E:/dump/full_image.png").toFile());
+		ImageIO.write(fullImage, "png", output.resolve("E:/sailing-dump/full_image.png").toFile());
 	}
 
 	private void drawMapSquare(BufferedImage image, int x, int y, int rgb)

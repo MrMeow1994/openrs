@@ -97,8 +97,8 @@ public class AudioInstrument {
             if(this.pitchModifier != null) {
                 this.pitchModifier.reset();
                 this.pitchModifierAmplitude.reset();
-                var5 = (int)((double)(this.pitchModifier.end - this.pitchModifier.start) * 32.768D / var3);
-                var6 = (int)((double)this.pitchModifier.start * 32.768D / var3);
+                var5 = (int)((double)(this.pitchModifier.end - this.pitchModifier.start) * 32.768 / var3);
+                var6 = (int)((double)this.pitchModifier.start * 32.768 / var3);
             }
 
             int var8 = 0;
@@ -107,8 +107,8 @@ public class AudioInstrument {
             if(this.volumeMultiplier != null) {
                 this.volumeMultiplier.reset();
                 this.volumeMultiplierAmplitude.reset();
-                var8 = (int)((double)(this.volumeMultiplier.end - this.volumeMultiplier.start) * 32.768D / var3);
-                var9 = (int)((double)this.volumeMultiplier.start * 32.768D / var3);
+                var8 = (int)((double)(this.volumeMultiplier.end - this.volumeMultiplier.start) * 32.768 / var3);
+                var9 = (int)((double)this.volumeMultiplier.start * 32.768 / var3);
             }
 
             int var11;
@@ -117,8 +117,8 @@ public class AudioInstrument {
                     phases[var11] = 0;
                     delays[var11] = (int)((double)this.oscillatorDelays[var11] * var3);
                     volumeSteps[var11] = (this.oscillatorVolume[var11] << 14) / 100;
-                    pitchSteps[var11] = (int)((double)(this.pitch.end - this.pitch.start) * 32.768D * Math.pow(1.0057929410678534D, (double)this.oscillatorPitch[var11]) / var3);
-                    pitchBaseSteps[var11] = (int)((double)this.pitch.start * 32.768D / var3);
+                    pitchSteps[var11] = (int)((double)(this.pitch.end - this.pitch.start) * 32.768 * Math.pow(1.0057929410678534, (double)this.oscillatorPitch[var11]) / var3);
+                    pitchBaseSteps[var11] = (int)((double)this.pitch.start * 32.768 / var3);
                 }
             }
 

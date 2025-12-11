@@ -22,18 +22,18 @@ public class MapDumper317Format {
             dir.mkdirs();
         }
 
-        File mapDir = new File("E:/dump/index4/");
+        File mapDir = new File("E:/dump/661index4/");
 
         if (!mapDir.exists()) {
             mapDir.mkdirs();
         }
 
-        if (!XTEAManager.load(Paths.get("repository","xtea/txt").toFile())) {
+        if (!XTEAManager.load(Paths.get("repository","xtea/661txt").toFile())) {
             return;
         }
 
-        try(Cache cache = new Cache(FileStore.open(Constants.CACHE_PATH)); RandomAccessFile raf = new RandomAccessFile(new File(dir,
-                "map_index").toPath().toString(), "rw")) {
+        try(Cache cache = new Cache(FileStore.open(Constants._CACHE_PATH_six_six_one)); RandomAccessFile raf = new RandomAccessFile(new File(dir,
+                "661map_index").toPath().toString(), "rw")) {
             System.out.println("Generating map_index...");
 
             int total = 0;

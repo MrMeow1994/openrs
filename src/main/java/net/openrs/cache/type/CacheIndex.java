@@ -47,7 +47,8 @@ public enum CacheIndex {
 	WORLDMAP_GEOGRAPHY(18),
 	WORLDMAP(19),
 	WORLDMAP_GROUND(20),
-	DBTABLEINDEX(21);
+	DBTABLEINDEX(21),
+	SKELETAL_KEYFRAMES(22);
 
 	private final int id;
 

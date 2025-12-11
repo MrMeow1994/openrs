@@ -12,8 +12,8 @@ import java.nio.file.Paths;
 public class SoundDumper {
 
     public static void main(String[] args) {
-        try (Cache cache = new Cache(FileStore.open(Constants.CACHE_PATH))) {
-            File dir = Paths.get("E:/dump/226sounds").toFile();
+        try (Cache cache = new Cache(FileStore.open(Constants._CACHE_PATH_six_six_one))) {
+            File dir = Paths.get("E:/dump/6612sounds").toFile();
             if (!dir.exists()) {
                 dir.mkdirs();
             }
@@ -27,7 +27,7 @@ public class SoundDumper {
     private static void export(Cache cache, File dir, boolean wav) {
         ReferenceTable table = cache.getReferenceTable(CacheIndex.SOUNDEFFECTS);
 
-        for (int i = 0; i < table.capacity(); i++) {
+        for (int i = 9498; i < table.capacity(); i++) {
             try {
                 SoundEffect effect = SoundEffect.decode(cache, i);
 

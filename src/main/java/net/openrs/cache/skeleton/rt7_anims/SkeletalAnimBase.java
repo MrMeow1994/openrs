@@ -7,7 +7,7 @@ import java.nio.ByteBuffer;
 
 public class SkeletalAnimBase extends AnimKeyFrameSet {
    public AnimationBone[] bones;
-   int max_connections;
+   public int max_connections;
    // Constructor to read data
    public SkeletalAnimBase(ByteBuffer packet, int count) {
       this.bones = new AnimationBone[count];
@@ -21,10 +21,13 @@ public class SkeletalAnimBase extends AnimKeyFrameSet {
 
    // Encode method to write data
    public void encode(DataOutputStream dos) throws IOException {
-      for (AnimationBone bone : bones) {
-         bone.encode(dos, false);  // Encode each bone
-      }
-      dos.writeByte(max_connections);  // Write number of bones
+      // First, write max_connections like the constructor expects
+      dos.writeByte(max_connections);
 
+      // Then encode each bone
+      for (AnimationBone bone : bones) {
+         bone.encode(dos, false);
+      }
    }
+
 }

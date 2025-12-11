@@ -77,24 +77,81 @@ public class ImageUtils {
 		g2.dispose();
 		return resizedImg;
 	}
+	public static BufferedImage makeMultiColorTransparent(BufferedImage image, Color[] targets, int tolerance) {
+		int width = image.getWidth();
+		int height = image.getHeight();
+		BufferedImage output = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+		int[] pixels = image.getRGB(0, 0, width, height, null, 0, width);
 
-	public static BufferedImage makeColorTransparent(BufferedImage im, final Color color) {
-		ImageFilter filter = new RGBImageFilter() {
+		int[][] targetColors = new int[targets.length][3];
+		for (int t = 0; t < targets.length; t++) {
+			targetColors[t][0] = targets[t].getRed();
+			targetColors[t][1] = targets[t].getGreen();
+			targetColors[t][2] = targets[t].getBlue();
+		}
 
-			public int markerRGB = color.getRGB() | 0xFF000000;
+		for (int i = 0; i < pixels.length; i++) {
+			int rgb = pixels[i];
+			int r = (rgb >> 16) & 0xFF;
+			int g = (rgb >> 8) & 0xFF;
+			int b = rgb & 0xFF;
 
-			public final int filterRGB(int x, int y, int rgb) {
-				if ((rgb | 0xFF000000) == markerRGB) {
-					return 0x00FFFFFF & rgb;
-				} else {
-					return rgb;
+			boolean match = false;
+			for (int[] tc : targetColors) {
+				if (Math.abs(r - tc[0]) <= tolerance &&
+						Math.abs(g - tc[1]) <= tolerance &&
+						Math.abs(b - tc[2]) <= tolerance) {
+					match = true;
+					break;
 				}
 			}
-		};
 
-		return imageToBufferedImage(
-				Toolkit.getDefaultToolkit().createImage(new FilteredImageSource(im.getSource(), filter)));
+			pixels[i] = match ? (rgb & 0x00FFFFFF) : (rgb | 0xFF000000);
+		}
+
+		output.setRGB(0, 0, width, height, pixels, 0, width);
+		return output;
 	}
+
+
+	public static BufferedImage makeColorTransparent(BufferedImage image, Color target, int tolerance) {
+		int width = image.getWidth();
+		int height = image.getHeight();
+
+		// Ensure output supports alpha
+		BufferedImage transparentImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+
+		int targetR = target.getRed();
+		int targetG = target.getGreen();
+		int targetB = target.getBlue();
+
+		for (int y = 0; y < height; y++) {
+			for (int x = 0; x < width; x++) {
+				int rgb = image.getRGB(x, y);
+				int r = (rgb >> 16) & 0xFF;
+				int g = (rgb >> 8) & 0xFF;
+				int b = rgb & 0xFF;
+
+				// Compute distance to target color
+				int diffR = Math.abs(r - targetR);
+				int diffG = Math.abs(g - targetG);
+				int diffB = Math.abs(b - targetB);
+
+				if (diffR <= tolerance && diffG <= tolerance && diffB <= tolerance) {
+					// Make transparent
+					rgb = (rgb & 0x00FFFFFF);
+				} else {
+					// Ensure full opacity
+					rgb = (rgb | 0xFF000000);
+				}
+
+				transparentImage.setRGB(x, y, rgb);
+			}
+		}
+
+		return transparentImage;
+	}
+
 
 	public static BufferedImage imageToBufferedImage(Image img) {
 		if (img instanceof BufferedImage) {
@@ -116,15 +173,44 @@ public class ImageUtils {
 	    g2d.dispose();
 	    return img;
 	}
-	
-    public static BufferedImage createColoredBackground(BufferedImage image, java.awt.Color color) {
-    	BufferedImage copy = new BufferedImage(image.getWidth(), image.getHeight(), BufferedImage.TYPE_INT_ARGB);
-    	Graphics2D g2d = copy.createGraphics();
-    	g2d.setColor(color); // Or what ever fill color you want...
-    	g2d.fillRect(0, 0, copy.getWidth(), copy.getHeight());
-    	g2d.drawImage(image, 0, 0, null);
-    	g2d.dispose();    	
-    	return copy;
-    }
+	public static BufferedImage makeColorTransparent2(BufferedImage im, final Color color) {
+		ImageFilter filter = new RGBImageFilter() {
+
+			public int markerRGB = color.getRGB() | 0xFF000000;
+
+			public final int filterRGB(int x, int y, int rgb) {
+				if ((rgb | 0xFF000000) == markerRGB) {
+					return 0x00FFFFFF & rgb;
+				} else {
+					return rgb;
+				}
+			}
+		};
+
+		return imageToBufferedImage(
+				Toolkit.getDefaultToolkit().createImage(new FilteredImageSource(im.getSource(), filter)));
+	}
+	public static BufferedImage createColoredBackground2(BufferedImage image, java.awt.Color color) {
+		BufferedImage copy = new BufferedImage(image.getWidth(), image.getHeight(), BufferedImage.TYPE_INT_ARGB);
+		Graphics2D g2d = copy.createGraphics();
+		g2d.setColor(color); // Or what ever fill color you want...
+		g2d.fillRect(0, 0, copy.getWidth(), copy.getHeight());
+		g2d.drawImage(image, 0, 0, null);
+		g2d.dispose();
+		return copy;
+	}
+	public static BufferedImage createColoredBackground(BufferedImage image, Color background) {
+		int width = image.getWidth();
+		int height = image.getHeight();
+
+		BufferedImage output = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+		Graphics2D g = output.createGraphics();
+		g.setColor(background);
+		g.fillRect(0, 0, width, height);
+		g.drawImage(image, 0, 0, null);
+		g.dispose();
+		return output;
+	}
+
 
 }

@@ -5,6 +5,7 @@ import net.openrs.cache.skeleton.rt7_anims.SkeletalAnimBase;
 
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
 
 public class Skin {
@@ -13,103 +14,84 @@ public class Skin {
     public int count;
     public int[] transformationTypes;
     public int[][] skinList;
-    public SkeletalAnimBase skeletalAnimBase;
+    public static SkeletalAnimBase skeletalAnimBase;
 
     public static Skin decode(ByteBuffer buffer, boolean highrev, int bufferSize) {
         Skin skin = new Skin();
         int start = buffer.position();
 
-        // 1. Read transform count
-        skin.count = highrev ? buffer.getShort() & 0xFFFF : buffer.get() & 0xFF;
-        skin.transformationTypes = new int[skin.count];
-        skin.skinList = new int[skin.count][];
+            skin.count = highrev ? (buffer.getShort() & 0xFFFF) : (buffer.get() & 0xFF);
+            skin.transformationTypes = new int[skin.count];
+            skin.skinList = new int[skin.count][];
 
-        // 2. Read transformation types
-        for (int i = 0; i < skin.count; ++i) {
-            skin.transformationTypes[i] = highrev ? buffer.getShort() & 0xFFFF : buffer.get() & 0xFF;
-        }
-
-        // 3. Read skin label counts
-        for (int i = 0; i < skin.count; ++i) {
-            int labelCount = highrev ? buffer.getShort() & 0xFFFF : buffer.get() & 0xFF;
-            skin.skinList[i] = new int[labelCount];
-        }
-
-        // 4. Read skin label values
-        for (int i = 0; i < skin.count; ++i) {
-            for (int j = 0; j < skin.skinList[i].length; ++j) {
-                skin.skinList[i][j] = highrev ? buffer.getShort() & 0xFFFF : buffer.get() & 0xFF;
+            // Read transformation types
+            for (int i = 0; i < skin.count; i++) {
+                skin.transformationTypes[i] = highrev ? (buffer.getShort() & 0xFFFF) : (buffer.get() & 0xFF);
             }
-        }
 
-        // 5. Attempt skeletalAnimBase if present (lowrev only)
-        int readSize = buffer.position() - start;
-        if (!highrev && readSize < bufferSize) {
-            try {
-                int skeletalSize = buffer.getShort() & 0xFFFF;
-                if (skeletalSize > 0) {
-                    skin.skeletalAnimBase = new SkeletalAnimBase(buffer, skeletalSize);
+            // Read label counts
+            for (int i = 0; i < skin.count; i++) {
+                int labelCount = highrev ? (buffer.getShort() & 0xFFFF) : (buffer.get() & 0xFF);
+                skin.skinList[i] = new int[labelCount];
+            }
+
+            // Read label values
+            for (int i = 0; i < skin.count; i++) {
+                for (int j = 0; j < skin.skinList[i].length; j++) {
+                    skin.skinList[i][j] = highrev ? (buffer.getShort() & 0xFFFF) : (buffer.get() & 0xFF);
                 }
-            } catch (Throwable t) {
-                System.err.println("⚠️ Failed to load SkeletalAnimBase (ID: " + skin.id + ")");
-                t.printStackTrace();
             }
-        }
 
-        // 6. Optional strict size check
-        int finalSize = buffer.position() - start;
-        if (finalSize != bufferSize) {
-            System.err.printf("⚠️ Warning: mismatch reading skin ID %d – expected %d bytes, read %d bytes\n", skin.id, bufferSize, finalSize);
-            // You may choose to throw here in strict mode
-        }
+            // Only attempt SkeletalAnimBase if enough bytes remain and it's lowrev
+            int readSize = buffer.position() - start;
+            if (!highrev) {
+                if (readSize != bufferSize) {
+                    try {
+                        int size = buffer.getShort() & 0xFFFF;
+                        if (size > 0) {
+                            skin.skeletalAnimBase = new SkeletalAnimBase(buffer, size);
+                        }
+                    } catch (Throwable t) {
+                        System.err.println("Tried to load base because there was extra base data but skeletal failed to load.");
+                        t.printStackTrace();
+                    }
+                }
+                int read2_size = buffer.position() - start;
+
+                if (read2_size != bufferSize) {
+                    throw new RuntimeException("base data size mismatch: " + read2_size + ", expected " + bufferSize);
+                }
+            }
 
         return skin;
     }
 
     public void encode(DataOutputStream dos, boolean highrev) throws IOException {
-        // 1. Write transform count
-        if (highrev) {
-            dos.writeShort(count);
-        } else {
-            dos.writeByte(count);
+        if (highrev) dos.writeShort(count);
+        else dos.writeByte(count);
+
+        for (int type : transformationTypes) {
+            if (highrev) dos.writeShort(type);
+            else dos.writeByte(type);
         }
 
-        // 2. Write transformation types
-        for (int transformationType : transformationTypes) {
-            if (highrev) {
-                dos.writeShort(transformationType);
-            } else {
-                dos.writeByte(transformationType);
-            }
-        }
-
-        // 3. Write label counts
         for (int[] labels : skinList) {
-            if (highrev) {
-                dos.writeShort(labels.length);
-            } else {
-                dos.writeByte(labels.length);
-            }
+            if (highrev) dos.writeShort(labels.length);
+            else dos.writeByte(labels.length);
         }
 
-        // 4. Write label values
         for (int[] labels : skinList) {
-            for (int label : labels) {
-                if (highrev) {
-                    dos.writeShort(label);
-                } else {
-                    dos.writeByte(label);
-                }
+            for (int l : labels) {
+                if (highrev) dos.writeShort(l);
+                else dos.writeByte(l);
             }
         }
 
-        // 5. Write skeletalAnimBase if present (lowrev only)
         if (!highrev && skeletalAnimBase != null) {
             dos.writeShort(skeletalAnimBase.bones.length);
+            dos.writeByte(skeletalAnimBase.max_connections);
             for (AnimationBone bone : skeletalAnimBase.bones) {
-                if (bone != null) {
-                    bone.encode(dos, false);
-                }
+                if (bone != null) bone.encode(dos, false);
             }
         }
     }
@@ -120,5 +102,9 @@ public class Skin {
 
     public int transforms_count() {
         return count;
+    }
+
+    public boolean hasSkeletal() {
+        return skeletalAnimBase != null && skeletalAnimBase.bones != null && skeletalAnimBase.bones.length > 0;
     }
 }

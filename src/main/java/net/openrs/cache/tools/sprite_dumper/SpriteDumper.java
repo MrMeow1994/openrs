@@ -45,13 +45,13 @@ import net.openrs.util.ImageUtils;
 public class SpriteDumper {
 	
 	public static void main(String[] args) throws IOException {
-		File directory = new File(Constants.SPRITE_PATH);			
+		File directory = new File(Constants.SPRITE_PATH_six_six_one);
 		
 		if (!directory.exists()) {
 			directory.mkdirs();
 		}
 		
-		try (Cache cache = new Cache(FileStore.open(Constants.CACHE_PATH))) {
+		try (Cache cache = new Cache(FileStore.open(Constants._CACHE_PATH_six_six_one))) {
 			ReferenceTable table = cache.getReferenceTable(8);
 			for (int i = 0; i < table.capacity(); i++) {
 				if (table.getEntry(i) == null)
@@ -60,14 +60,37 @@ public class SpriteDumper {
 				Container container = cache.read(8, i);
 				Sprite sprite = Sprite.decode(container.getData());
 
-				for (int frame = 0; frame < sprite.size(); frame++) {
-					File file = new File(Constants.SPRITE_PATH,  i + ".png");
-					
-					BufferedImage image = ImageUtils.createColoredBackground(ImageUtils.makeColorTransparent(sprite.getFrame(frame), Color.WHITE), new java.awt.Color(0xFF00FF, false));
+				File transparentDir = new File(Constants.SPRITE_PATH_six_six_one, "transparent");
+				File magentaDir = new File(Constants.SPRITE_PATH_six_six_one, "magenta");
 
-					ImageIO.write(image, "png", file);
+// Create directories if missing
+				transparentDir.mkdirs();
+				magentaDir.mkdirs();
+
+				for (int frame = 0; frame < sprite.size(); frame++) {
+					BufferedImage frameImage = sprite.getFrame(frame);
+
+					// Step 1: remove old magenta & white backgrounds (make them transparent)
+					BufferedImage transparent = ImageUtils.makeMultiColorTransparent(
+							frameImage,
+							new Color[]{ Color.WHITE, new Color(255, 0, 255) },
+							10 // tolerance — loosen if edges still show
+					);
+
+					// Step 2a: save as TRUE TRANSPARENT version
+					File transparentFile = new File(transparentDir, i + "_" + frame + ".png");
+					ImageIO.write(transparent, "png", transparentFile);
+
+					// Step 2b: also create a MAGENTA background version (for legacy debugging)
+					BufferedImage magentaBackground = ImageUtils.createColoredBackground(
+							transparent,
+							new Color(0xFF00FF) // magenta fill behind transparency
+					);
+
+					File magentaFile = new File(magentaDir, i + "_" + frame + ".png");
+					ImageIO.write(magentaBackground, "png", magentaFile);
 				}
-				
+
 				double progress = (double) (i + 1) / table.capacity() * 100;
 				
 				System.out.printf("%d out of %d %.2f%s\n", (i + 1), table.capacity(), progress, "%");	

@@ -17,13 +17,13 @@ public class FloorDumper {
 
     public static void main(String[] args) {
 
-        File dir = new File("E:/dump");
+        File dir = new File("E:/sailing-dump");
 
         if (!dir.exists()) {
             dir.mkdirs();
         }
 
-        try(Cache cache = new Cache(FileStore.open(Constants.CACHE_PATH))) {
+        try(Cache cache = new Cache(FileStore.open(Constants.SAILING_CACHE_PATH))) {
 
             UnderlayTypeList underlays = new UnderlayTypeList();
             OverlayTypeList overlays = new OverlayTypeList();

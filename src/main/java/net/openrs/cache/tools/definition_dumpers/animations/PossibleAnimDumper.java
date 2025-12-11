@@ -18,12 +18,12 @@ import com.google.gson.stream.JsonWriter;
 
 public class PossibleAnimDumper {
 	
-	public static final String EXPORT = "E:/dump/PossibleanimsNoHumanoid227.json";
+	public static final String EXPORT = "E:/dump/Possibleanims233.json";
 	
 	public static final String LISTFILE = "E:/dump/types/sequences.txt";
 	public static final String NPCFILE = "E:/dump/types/npcs.txt";
 
-	private static boolean noHumanoidNpcs = true;
+	private static boolean noHumanoidNpcs = false;
 	
 	static String readFile(String path, Charset encoding) 
 	  throws IOException 
